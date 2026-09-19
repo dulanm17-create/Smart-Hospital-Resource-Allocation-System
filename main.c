@@ -38,6 +38,7 @@ int admitted[10];
 int patientWard[10];
 int assignedBed[10];
 int daysAdmitted[10];
+int originalID[10]; // To preserve original registration order (PAT-1001, etc.)
 
 int specialtyQueue[4] = {0};
 
@@ -45,22 +46,19 @@ int specialtyQueue[4] = {0};
 // 3. CALCULATION FUNCTIONS (REQUIREMENT 3)
 // ==========================================
 
-// Calculate Waiting Time
 float calculateWaitingTime(int specIndex) {
     return (float)(specialtyQueue[specIndex] * consultationTime[specIndex]);
 }
 
-// Calculate Emergency Surcharge
 float calculateSurcharge(float baseFee, int urgency) {
     if (urgency == 2) {
-        return baseFee * 0.20f; // 20%
+        return baseFee * 0.20f;
     } else if (urgency == 3) {
-        return baseFee * 0.50f; // 50%
+        return baseFee * 0.50f;
     }
-    return 0.0f; // Normal case
+    return 0.0f;
 }
 
-// Calculate Total Ward Cost
 float calculateWardCost(int isAdmitted, int wIndex, int days) {
     if (isAdmitted == 1 && wIndex >= 0 && wIndex < 4) {
         return days * wardDailyRate[wIndex];
@@ -68,10 +66,9 @@ float calculateWardCost(int isAdmitted, int wIndex, int days) {
     return 0.0f;
 }
 
-// Calculate Age Subsidy Discount
 float calculateDiscount(int age, float grossTotal) {
     if (age < 5 || age > 65) {
-        return grossTotal * 0.15f; // 15% discount
+        return grossTotal * 0.15f;
     }
     return 0.0f;
 }
@@ -95,7 +92,7 @@ void printPatientBill(int index) {
     printf("\n==================================================\n");
     printf("         SMART HOSPITAL ADMISSION & BILL          \n");
     printf("==================================================\n");
-    printf("Patient ID              : PAT-%d\n", 1001 + index);
+    printf("Patient ID              : PAT-%d\n", originalID[index]);
     printf("Patient Name            : %s\n", patientName[index]);
 
     if (patientAge[index] < 5 || patientAge[index] > 65) {
@@ -148,6 +145,9 @@ void registerPatient() {
     }
 
     printf("\n--- PATIENT REGISTRATION ---\n");
+
+    // Assign Original ID
+    originalID[patientCount] = 1001 + patientCount;
 
     // Patient Name
     printf("Enter Patient Name: ");
@@ -216,7 +216,7 @@ void registerPatient() {
         daysAdmitted[patientCount] = 0;
     }
 
-    // Print Receipt Immediately After Registration
+    // Print Receipt
     printPatientBill(patientCount);
 
     // Increment Queue Count
@@ -226,7 +226,82 @@ void registerPatient() {
 }
 
 // ==========================================
-// 6. MAIN FUNCTION
+// 6. TRIAGE PRIORITY SORTING (REQUIREMENT 4)
+// ==========================================
+
+void displayPatientsTriage() {
+    if (patientCount == 0) {
+        printf("\nNo registered patients in the system.\n");
+        return;
+    }
+
+    // Copy parallel arrays to temporary arrays for sorting without corrupting main data
+    char tempName[10][50];
+    int tempAge[10], tempUrgency[10], tempSpecialty[10], tempAdmitted[10], tempWard[10], tempBed[10], tempDays[10], tempID[10];
+
+    for (int i = 0; i < patientCount; i++) {
+        strcpy(tempName[i], patientName[i]);
+        tempAge[i] = patientAge[i];
+        tempUrgency[i] = urgencyLevel[i];
+        tempSpecialty[i] = patientSpecialty[i];
+        tempAdmitted[i] = admitted[i];
+        tempWard[i] = patientWard[i];
+        tempBed[i] = assignedBed[i];
+        tempDays[i] = daysAdmitted[i];
+        tempID[i] = originalID[i];
+    }
+
+    // Bubble Sort Algorithm (Primary Priority: Urgency Level descending)
+    for (int i = 0; i < patientCount - 1; i++) {
+        for (int j = 0; j < patientCount - i - 1; j++) {
+            if (tempUrgency[j] < tempUrgency[j + 1]) {
+                // Swap Urgency
+                int tU = tempUrgency[j]; tempUrgency[j] = tempUrgency[j + 1]; tempUrgency[j + 1] = tU;
+                // Swap Name
+                char tN[50]; strcpy(tN, tempName[j]); strcpy(tempName[j], tempName[j + 1]); strcpy(tempName[j + 1], tN);
+                // Swap Age
+                int tA = tempAge[j]; tempAge[j] = tempAge[j + 1]; tempAge[j + 1] = tA;
+                // Swap Specialty
+                int tS = tempSpecialty[j]; tempSpecialty[j] = tempSpecialty[j + 1]; tempSpecialty[j + 1] = tS;
+                // Swap Admitted
+                int tAd = tempAdmitted[j]; tempAdmitted[j] = tempAdmitted[j + 1]; tempAdmitted[j + 1] = tAd;
+                // Swap Ward
+                int tW = tempWard[j]; tempWard[j] = tempWard[j + 1]; tempWard[j + 1] = tW;
+                // Swap Bed
+                int tB = tempBed[j]; tempBed[j] = tempBed[j + 1]; tempBed[j + 1] = tB;
+                // Swap Days
+                int tD = tempDays[j]; tempDays[j] = tempDays[j + 1]; tempDays[j + 1] = tD;
+                // Swap ID
+                int tI = tempID[j]; tempID[j] = tempID[j + 1]; tempID[j + 1] = tI;
+            }
+        }
+    }
+
+    // Display Sorted List
+    printf("\n=========================================================================\n");
+    printf("             REGISTERED PATIENTS - TRIAGE PRIORITY ORDER                  \n");
+    printf("=========================================================================\n");
+    printf("%-10s %-20s %-5s %-12s %-18s %-10s\n", "ID", "Name", "Age", "Urgency", "Specialty", "Status");
+    printf("-------------------------------------------------------------------------\n");
+
+    for (int i = 0; i < patientCount; i++) {
+        char urgStr[15];
+        if (tempUrgency[i] == 3) strcpy(urgStr, "3-Critical");
+        else if (tempUrgency[i] == 2) strcpy(urgStr, "2-Urgent");
+        else strcpy(urgStr, "1-Normal");
+
+        char statusStr[20];
+        if (tempAdmitted[i] == 1) sprintf(statusStr, "Ward %d (B#%d)", tempWard[i], tempBed[i]);
+        else strcpy(statusStr, "OPD");
+
+        printf("PAT-%-6d %-20s %-5d %-12s %-18s %-10s\n",
+               tempID[i], tempName[i], tempAge[i], urgStr, specialtyName[tempSpecialty[i] - 1], statusStr);
+    }
+    printf("=========================================================================\n");
+}
+
+// ==========================================
+// 7. MAIN FUNCTION
 // ==========================================
 int main()
 {
@@ -250,7 +325,7 @@ int main()
                 registerPatient();
                 break;
             case 2:
-                printf("\n[ Triage Priority Display Coming Soon ]\n");
+                displayPatientsTriage();
                 break;
             case 3:
                 printf("\n[ Bed Status Feature Coming Soon ]\n");
