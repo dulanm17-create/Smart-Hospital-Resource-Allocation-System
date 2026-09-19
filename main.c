@@ -1,3 +1,13 @@
+/*
+ * ============================================================================
+ * Project Name : Smart Hospital Admission, Triage & Billing System
+ * Language     : C Programming
+ * Description  : Comprehensive system for patient registration, triage priority
+ *                sorting, bed status visualization, dynamic bill calculation,
+ *                analytics reporting, and file handling.
+ * ============================================================================
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -278,10 +288,8 @@ void registerPatient() {
         daysAdmitted[patientCount] = 0;
     }
 
-    // Print Receipt
     printPatientBill(patientCount);
 
-    // Save Data to Files
     savePatientToLog(patientCount);
     saveBedStatusToFile();
     printf("[Data successfully saved to patient_log.txt and bed_status.txt]\n");
