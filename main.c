@@ -37,6 +37,35 @@ for (int i = 0; i < 4; i++)
            consultationTime[i]);
 }
 
+int wardID[4] = {1, 2, 3, 4};
+
+char wardName[4][30] = {
+    "General Ward",
+    "Paediatric Ward",
+    "Surgical Ward",
+    "ICU"
+};
+
+float wardDailyRate[4] = {
+    3000.00,
+    6000.00,
+    12000.00,
+    25000.00
+};
+
+int bedCapacity[4] = {20, 10, 10, 5};
+
+printf("\nHospital Wards\n");
+printf("-----------------------------\n");
+
+for (int i = 0; i < 4; i++)
+{
+    printf("%d. %s - LKR %.2f/day - %d beds\n",
+           wardID[i],
+           wardName[i],
+           wardDailyRate[i],
+           bedCapacity[i]);
+}
 
     return 0;
 }
