@@ -38,7 +38,7 @@ int admitted[10];
 int patientWard[10];
 int assignedBed[10];
 int daysAdmitted[10];
-int originalID[10]; // To preserve original registration order (PAT-1001, etc.)
+int originalID[10];
 
 int specialtyQueue[4] = {0};
 
@@ -146,26 +146,21 @@ void registerPatient() {
 
     printf("\n--- PATIENT REGISTRATION ---\n");
 
-    // Assign Original ID
     originalID[patientCount] = 1001 + patientCount;
 
-    // Patient Name
     printf("Enter Patient Name: ");
-    getchar(); // Clear buffer
+    getchar();
     fgets(patientName[patientCount], 50, stdin);
     patientName[patientCount][strcspn(patientName[patientCount], "\n")] = 0;
 
-    // Patient Age
     printf("Enter Patient Age: ");
     scanf("%d", &patientAge[patientCount]);
 
-    // Urgency Level
     printf("\nUrgency/Triage Level:\n");
     printf("1. Normal\n2. Urgent\n3. Critical\n");
     printf("Select Urgency Level (1-3): ");
     scanf("%d", &urgencyLevel[patientCount]);
 
-    // Doctor Specialty Selection
     printf("\nDoctor Specialties:\n");
     for (int i = 0; i < 4; i++) {
         printf("%d. %s (Fee: LKR %.2f)\n", specialtyID[i], specialtyName[i], consultationFee[i]);
@@ -175,7 +170,6 @@ void registerPatient() {
 
     int specIndex = patientSpecialty[patientCount] - 1;
 
-    // Ward Admission Details
     printf("\nIs Admitted to Ward? (1 = Yes, 0 = No): ");
     scanf("%d", &admitted[patientCount]);
 
@@ -216,10 +210,8 @@ void registerPatient() {
         daysAdmitted[patientCount] = 0;
     }
 
-    // Print Receipt
     printPatientBill(patientCount);
 
-    // Increment Queue Count
     specialtyQueue[specIndex]++;
 
     patientCount++;
@@ -235,7 +227,6 @@ void displayPatientsTriage() {
         return;
     }
 
-    // Copy parallel arrays to temporary arrays for sorting without corrupting main data
     char tempName[10][50];
     int tempAge[10], tempUrgency[10], tempSpecialty[10], tempAdmitted[10], tempWard[10], tempBed[10], tempDays[10], tempID[10];
 
@@ -251,33 +242,22 @@ void displayPatientsTriage() {
         tempID[i] = originalID[i];
     }
 
-    // Bubble Sort Algorithm (Primary Priority: Urgency Level descending)
     for (int i = 0; i < patientCount - 1; i++) {
         for (int j = 0; j < patientCount - i - 1; j++) {
             if (tempUrgency[j] < tempUrgency[j + 1]) {
-                // Swap Urgency
                 int tU = tempUrgency[j]; tempUrgency[j] = tempUrgency[j + 1]; tempUrgency[j + 1] = tU;
-                // Swap Name
                 char tN[50]; strcpy(tN, tempName[j]); strcpy(tempName[j], tempName[j + 1]); strcpy(tempName[j + 1], tN);
-                // Swap Age
                 int tA = tempAge[j]; tempAge[j] = tempAge[j + 1]; tempAge[j + 1] = tA;
-                // Swap Specialty
                 int tS = tempSpecialty[j]; tempSpecialty[j] = tempSpecialty[j + 1]; tempSpecialty[j + 1] = tS;
-                // Swap Admitted
                 int tAd = tempAdmitted[j]; tempAdmitted[j] = tempAdmitted[j + 1]; tempAdmitted[j + 1] = tAd;
-                // Swap Ward
                 int tW = tempWard[j]; tempWard[j] = tempWard[j + 1]; tempWard[j + 1] = tW;
-                // Swap Bed
                 int tB = tempBed[j]; tempBed[j] = tempBed[j + 1]; tempBed[j + 1] = tB;
-                // Swap Days
                 int tD = tempDays[j]; tempDays[j] = tempDays[j + 1]; tempDays[j + 1] = tD;
-                // Swap ID
                 int tI = tempID[j]; tempID[j] = tempID[j + 1]; tempID[j + 1] = tI;
             }
         }
     }
 
-    // Display Sorted List
     printf("\n=========================================================================\n");
     printf("             REGISTERED PATIENTS - TRIAGE PRIORITY ORDER                  \n");
     printf("=========================================================================\n");
@@ -301,7 +281,44 @@ void displayPatientsTriage() {
 }
 
 // ==========================================
-// 7. MAIN FUNCTION
+// 7. BED STATUS VISUALIZER (REQUIREMENT 1)
+// ==========================================
+
+void displayBedStatus() {
+    printf("\n=========================================================\n");
+    printf("             HOSPITAL WARDS & BED STATUS                 \n");
+    printf("=========================================================\n");
+    printf(" Legend: [X] = Occupied | [ ] = Available                \n");
+    printf("---------------------------------------------------------\n");
+
+    for (int w = 0; w < 4; w++) {
+        int occupiedCount = 0;
+        for (int b = 0; b < bedCapacity[w]; b++) {
+            if (bedOccupancy[w][b] == 1) occupiedCount++;
+        }
+
+        printf("\nWard %d: %-18s (Rate: LKR %.2f/day)\n", wardID[w], wardName[w], wardDailyRate[w]);
+        printf("Occupancy: %d/%d beds\n", occupiedCount, bedCapacity[w]);
+        printf("Bed Layout:\n");
+
+        for (int b = 0; b < bedCapacity[w]; b++) {
+            if (bedOccupancy[w][b] == 1) {
+                printf("[X] B%02d ", b + 1);
+            } else {
+                printf("[ ] B%02d ", b + 1);
+            }
+
+            // Print 5 beds per line for readability
+            if ((b + 1) % 5 == 0) {
+                printf("\n");
+            }
+        }
+        printf("---------------------------------------------------------\n");
+    }
+}
+
+// ==========================================
+// 8. MAIN FUNCTION
 // ==========================================
 int main()
 {
@@ -328,7 +345,7 @@ int main()
                 displayPatientsTriage();
                 break;
             case 3:
-                printf("\n[ Bed Status Feature Coming Soon ]\n");
+                displayBedStatus();
                 break;
             case 4:
                 printf("\n[ Analytics Report Feature Coming Soon ]\n");
