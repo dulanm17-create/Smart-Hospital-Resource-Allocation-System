@@ -24,7 +24,7 @@ char wardName[4][30] = {
 };
 float wardDailyRate[4] = {3000.00, 6000.00, 12000.00, 25000.00};
 int bedCapacity[4] = {20, 10, 10, 5};
-int bedOccupancy[4][20] = {0};
+int bedOccupancy[4][20] = {0}; // 0 = Available, 1 = Occupied
 
 // ==========================================
 // 2. PATIENT DATA & QUEUE TRACKING ARRAYS
@@ -36,9 +36,10 @@ int urgencyLevel[10];
 int patientSpecialty[10];
 int admitted[10];
 int patientWard[10];
+int assignedBed[10];
 int daysAdmitted[10];
 
-int specialtyQueue[4] = {0}; // Track active queue per specialty
+int specialtyQueue[4] = {0};
 
 // ==========================================
 // 3. FUNCTION DECLARATIONS & IMPLEMENTATION
@@ -57,7 +58,7 @@ void registerPatient() {
     printf("Enter Patient Name: ");
     getchar(); // Clear buffer
     fgets(patientName[patientCount], 50, stdin);
-    patientName[patientCount][strcspn(patientName[patientCount], "\n")] = 0; // Remove newline
+    patientName[patientCount][strcspn(patientName[patientCount], "\n")] = 0;
 
     // Patient Age
     printf("Enter Patient Age: ");
@@ -77,9 +78,51 @@ void registerPatient() {
     printf("Select Specialty ID (1-4): ");
     scanf("%d", &patientSpecialty[patientCount]);
 
-    // Update Queue for the selected specialty
+    // Update Queue
     int specIndex = patientSpecialty[patientCount] - 1;
     specialtyQueue[specIndex]++;
+
+    // Ward Admission Details
+    printf("\nIs Admitted to Ward? (1 = Yes, 0 = No): ");
+    scanf("%d", &admitted[patientCount]);
+
+    if (admitted[patientCount] == 1) {
+        printf("\nHospital Wards:\n");
+        for (int i = 0; i < 4; i++) {
+            printf("%d. %s - LKR %.2f/day (Beds: %d)\n", wardID[i], wardName[i], wardDailyRate[i], bedCapacity[i]);
+        }
+        printf("Select Ward ID (1-4): ");
+        scanf("%d", &patientWard[patientCount]);
+
+        int wIndex = patientWard[patientCount] - 1;
+
+        // Find available bed in 2D Bed Occupancy Matrix
+        int allocated = 0;
+        for (int b = 0; b < bedCapacity[wIndex]; b++) {
+            if (bedOccupancy[wIndex][b] == 0) {
+                bedOccupancy[wIndex][b] = 1; // Mark bed as occupied
+                assignedBed[patientCount] = b + 1;
+                allocated = 1;
+                break;
+            }
+        }
+
+        if (!allocated) {
+            printf("Warning: Selected Ward is full! Patient registered as OPD.\n");
+            admitted[patientCount] = 0;
+            patientWard[patientCount] = 0;
+            assignedBed[patientCount] = 0;
+            daysAdmitted[patientCount] = 0;
+        } else {
+            printf("Enter Days Admitted: ");
+            scanf("%d", &daysAdmitted[patientCount]);
+            printf("Bed #%02d in %s allocated successfully!\n", assignedBed[patientCount], wardName[wIndex]);
+        }
+    } else {
+        patientWard[patientCount] = 0;
+        assignedBed[patientCount] = 0;
+        daysAdmitted[patientCount] = 0;
+    }
 
     printf("\nPatient %s registered successfully!\n", patientName[patientCount]);
     patientCount++;
