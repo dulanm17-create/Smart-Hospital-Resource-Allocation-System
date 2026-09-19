@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // ==========================================
 // 1. LOOKUP DATA & CONSTANTS
@@ -37,10 +38,55 @@ int admitted[10];
 int patientWard[10];
 int daysAdmitted[10];
 
-int specialtyQueue[4] = {0}; // එක එක specialty එකේ දැනට ඉන්න queue count එක
+int specialtyQueue[4] = {0}; // Track active queue per specialty
 
 // ==========================================
-// 3. MAIN FUNCTION
+// 3. FUNCTION DECLARATIONS & IMPLEMENTATION
+// ==========================================
+
+// Patient Registration Function
+void registerPatient() {
+    if (patientCount >= 10) {
+        printf("\nError: System memory full! Cannot register more patients.\n");
+        return;
+    }
+
+    printf("\n--- PATIENT REGISTRATION ---\n");
+
+    // Patient Name
+    printf("Enter Patient Name: ");
+    getchar(); // Clear buffer
+    fgets(patientName[patientCount], 50, stdin);
+    patientName[patientCount][strcspn(patientName[patientCount], "\n")] = 0; // Remove newline
+
+    // Patient Age
+    printf("Enter Patient Age: ");
+    scanf("%d", &patientAge[patientCount]);
+
+    // Urgency Level
+    printf("\nUrgency/Triage Level:\n");
+    printf("1. Normal\n2. Urgent\n3. Critical\n");
+    printf("Select Urgency Level (1-3): ");
+    scanf("%d", &urgencyLevel[patientCount]);
+
+    // Doctor Specialty Selection
+    printf("\nDoctor Specialties:\n");
+    for (int i = 0; i < 4; i++) {
+        printf("%d. %s (Fee: LKR %.2f)\n", specialtyID[i], specialtyName[i], consultationFee[i]);
+    }
+    printf("Select Specialty ID (1-4): ");
+    scanf("%d", &patientSpecialty[patientCount]);
+
+    // Update Queue for the selected specialty
+    int specIndex = patientSpecialty[patientCount] - 1;
+    specialtyQueue[specIndex]++;
+
+    printf("\nPatient %s registered successfully!\n", patientName[patientCount]);
+    patientCount++;
+}
+
+// ==========================================
+// 4. MAIN FUNCTION
 // ==========================================
 int main()
 {
@@ -61,7 +107,7 @@ int main()
 
         switch(choice) {
             case 1:
-                printf("\n[ Patient Registration Feature Coming Soon ]\n");
+                registerPatient();
                 break;
             case 2:
                 printf("\n[ Triage Priority Display Coming Soon ]\n");
