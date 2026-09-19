@@ -308,7 +308,6 @@ void displayBedStatus() {
                 printf("[ ] B%02d ", b + 1);
             }
 
-            // Print 5 beds per line for readability
             if ((b + 1) % 5 == 0) {
                 printf("\n");
             }
@@ -318,7 +317,79 @@ void displayBedStatus() {
 }
 
 // ==========================================
-// 8. MAIN FUNCTION
+// 8. SUMMARY REPORTS & ANALYTICS (REQUIREMENT 6)
+// ==========================================
+
+void generateAnalyticsReport() {
+    printf("\n=========================================================\n");
+    printf("         SMART HOSPITAL PERFORMANCE & ANALYTICS          \n");
+    printf("=========================================================\n");
+
+    if (patientCount == 0) {
+        printf("No patient data available for analytics.\n");
+        printf("=========================================================\n");
+        return;
+    }
+
+    int lvl1 = 0, lvl2 = 0, lvl3 = 0;
+    float totalRevenue = 0.0f;
+    float totalDiscounts = 0.0f;
+
+    float maxBill = -1.0f;
+    char highestPayerName[50] = "None";
+
+    for (int i = 0; i < patientCount; i++) {
+        if (urgencyLevel[i] == 1) lvl1++;
+        else if (urgencyLevel[i] == 2) lvl2++;
+        else if (urgencyLevel[i] == 3) lvl3++;
+
+        int sIdx = patientSpecialty[i] - 1;
+        int wIdx = patientWard[i] - 1;
+
+        float baseFee = consultationFee[sIdx];
+        float surcharge = calculateSurcharge(baseFee, urgencyLevel[i]);
+        float wardCost = calculateWardCost(admitted[i], wIdx, daysAdmitted[i]);
+        float grossTotal = baseFee + surcharge + wardCost;
+        float discount = calculateDiscount(patientAge[i], grossTotal);
+        float finalPayable = grossTotal - discount;
+
+        totalRevenue += finalPayable;
+        totalDiscounts += discount;
+
+        if (finalPayable > maxBill) {
+            maxBill = finalPayable;
+            strcpy(highestPayerName, patientName[i]);
+        }
+    }
+
+    printf("1. Patient Intake Breakdown:\n");
+    printf("   - Total Registered Patients : %d\n", patientCount);
+    printf("   - Level 1 (Normal)          : %d\n", lvl1);
+    printf("   - Level 2 (Urgent)          : %d\n", lvl2);
+    printf("   - Level 3 (Critical)        : %d\n", lvl3);
+
+    printf("\n2. Financial Summary:\n");
+    printf("   - Total Revenue Earned      : LKR %.2f\n", totalRevenue);
+    printf("   - Total Discounts Granted   : LKR %.2f\n", totalDiscounts);
+
+    printf("\n3. Ward Bed Occupancy Rate:\n");
+    for (int w = 0; w < 4; w++) {
+        int occ = 0;
+        for (int b = 0; b < bedCapacity[w]; b++) {
+            if (bedOccupancy[w][b] == 1) occ++;
+        }
+        float percentage = ((float)occ / bedCapacity[w]) * 100.0f;
+        printf("   - %-18s : %.1f%% (%d/%d beds)\n", wardName[w], percentage, occ, bedCapacity[w]);
+    }
+
+    printf("\n4. Highest Paying Patient:\n");
+    printf("   - Name       : %s\n", highestPayerName);
+    printf("   - Total Bill : LKR %.2f\n", maxBill);
+    printf("=========================================================\n");
+}
+
+// ==========================================
+// 9. MAIN FUNCTION
 // ==========================================
 int main()
 {
@@ -348,7 +419,7 @@ int main()
                 displayBedStatus();
                 break;
             case 4:
-                printf("\n[ Analytics Report Feature Coming Soon ]\n");
+                generateAnalyticsReport();
                 break;
             case 5:
                 printf("\nExiting System. Thank you!\n");
