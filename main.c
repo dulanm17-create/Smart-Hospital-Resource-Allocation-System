@@ -77,10 +77,70 @@ float calculateDiscount(int age, float grossTotal) {
 }
 
 // ==========================================
-// 4. FUNCTION DECLARATIONS & IMPLEMENTATION
+// 4. BILL DISPLAY FUNCTION (REQUIREMENT 5)
 // ==========================================
 
-// Patient Registration Function
+void printPatientBill(int index) {
+    int sIdx = patientSpecialty[index] - 1;
+    int wIdx = patientWard[index] - 1;
+
+    float baseFee = consultationFee[sIdx];
+    float surcharge = calculateSurcharge(baseFee, urgencyLevel[index]);
+    float wardCost = calculateWardCost(admitted[index], wIdx, daysAdmitted[index]);
+    float grossTotal = baseFee + surcharge + wardCost;
+    float discount = calculateDiscount(patientAge[index], grossTotal);
+    float finalPayable = grossTotal - discount;
+    float waitTime = calculateWaitingTime(sIdx);
+
+    printf("\n==================================================\n");
+    printf("         SMART HOSPITAL ADMISSION & BILL          \n");
+    printf("==================================================\n");
+    printf("Patient ID              : PAT-%d\n", 1001 + index);
+    printf("Patient Name            : %s\n", patientName[index]);
+
+    if (patientAge[index] < 5 || patientAge[index] > 65) {
+        printf("Age                     : %d Years (15%% Subsidy Eligible)\n", patientAge[index]);
+    } else {
+        printf("Age                     : %d Years\n", patientAge[index]);
+    }
+
+    printf("Specialty               : %s\n", specialtyName[sIdx]);
+
+    if (admitted[index] == 1) {
+        printf("Assigned Ward           : %s (Bed #%02d)\n", wardName[wIdx], assignedBed[index]);
+    } else {
+        printf("Assigned Ward           : None (OPD Patient)\n");
+    }
+
+    if (urgencyLevel[index] == 3) {
+        printf("Urgency Level           : Level 3 (Critical)\n");
+    } else if (urgencyLevel[index] == 2) {
+        printf("Urgency Level           : Level 2 (Urgent)\n");
+    } else {
+        printf("Urgency Level           : Level 1 (Normal)\n");
+    }
+
+    printf("--------------------------------------------------\n");
+    printf("Base Consultation Fee   : LKR %.2f\n", baseFee);
+    printf("Emergency Surcharge     : LKR %.2f\n", surcharge);
+    printf("Ward Stay Cost (%d Days) : LKR %.2f\n", daysAdmitted[index], wardCost);
+    printf("Gross Total Bill        : LKR %.2f\n", grossTotal);
+    printf("Age Subsidy Discount    : LKR -%.2f\n", discount);
+    printf("--------------------------------------------------\n");
+    printf("Final Payable Amount    : LKR %.2f\n", finalPayable);
+
+    if (urgencyLevel[index] == 3) {
+        printf("Estimated Waiting Time  : 0.00 mins (Immediate Attention)\n");
+    } else {
+        printf("Estimated Waiting Time  : %.2f mins\n", waitTime);
+    }
+    printf("==================================================\n\n");
+}
+
+// ==========================================
+// 5. REGISTRATION FUNCTION
+// ==========================================
+
 void registerPatient() {
     if (patientCount >= 10) {
         printf("\nError: System memory full! Cannot register more patients.\n");
@@ -156,15 +216,17 @@ void registerPatient() {
         daysAdmitted[patientCount] = 0;
     }
 
-    // Increment Queue Count AFTER logic is completed
+    // Print Receipt Immediately After Registration
+    printPatientBill(patientCount);
+
+    // Increment Queue Count
     specialtyQueue[specIndex]++;
 
-    printf("\nPatient %s registered successfully!\n", patientName[patientCount]);
     patientCount++;
 }
 
 // ==========================================
-// 5. MAIN FUNCTION
+// 6. MAIN FUNCTION
 // ==========================================
 int main()
 {
