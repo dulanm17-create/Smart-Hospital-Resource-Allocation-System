@@ -69,5 +69,14 @@ for (int i = 0; i < 4; i++)
            bedCapacity[i]);
 }
 
+int patientCount = 0;
+
+char patientName[10][50];
+int patientAge[10];
+int urgencyLevel[10];
+int patientSpecialty[10];
+int admitted[10];
+int patientWard[10];
+int daysAdmitted[10];
     return 0;
 }
