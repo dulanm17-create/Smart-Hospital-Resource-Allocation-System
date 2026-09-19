@@ -55,6 +55,8 @@ float wardDailyRate[4] = {
 
 int bedCapacity[4] = {20, 10, 10, 5};
 
+int bedOccupancy[4][20] = {0};
+
 printf("\nHospital Wards\n");
 printf("-----------------------------\n");
 
