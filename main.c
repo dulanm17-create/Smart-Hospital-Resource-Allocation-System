@@ -42,7 +42,42 @@ int daysAdmitted[10];
 int specialtyQueue[4] = {0};
 
 // ==========================================
-// 3. FUNCTION DECLARATIONS & IMPLEMENTATION
+// 3. CALCULATION FUNCTIONS (REQUIREMENT 3)
+// ==========================================
+
+// Calculate Waiting Time
+float calculateWaitingTime(int specIndex) {
+    return (float)(specialtyQueue[specIndex] * consultationTime[specIndex]);
+}
+
+// Calculate Emergency Surcharge
+float calculateSurcharge(float baseFee, int urgency) {
+    if (urgency == 2) {
+        return baseFee * 0.20f; // 20%
+    } else if (urgency == 3) {
+        return baseFee * 0.50f; // 50%
+    }
+    return 0.0f; // Normal case
+}
+
+// Calculate Total Ward Cost
+float calculateWardCost(int isAdmitted, int wIndex, int days) {
+    if (isAdmitted == 1 && wIndex >= 0 && wIndex < 4) {
+        return days * wardDailyRate[wIndex];
+    }
+    return 0.0f;
+}
+
+// Calculate Age Subsidy Discount
+float calculateDiscount(int age, float grossTotal) {
+    if (age < 5 || age > 65) {
+        return grossTotal * 0.15f; // 15% discount
+    }
+    return 0.0f;
+}
+
+// ==========================================
+// 4. FUNCTION DECLARATIONS & IMPLEMENTATION
 // ==========================================
 
 // Patient Registration Function
@@ -78,9 +113,7 @@ void registerPatient() {
     printf("Select Specialty ID (1-4): ");
     scanf("%d", &patientSpecialty[patientCount]);
 
-    // Update Queue
     int specIndex = patientSpecialty[patientCount] - 1;
-    specialtyQueue[specIndex]++;
 
     // Ward Admission Details
     printf("\nIs Admitted to Ward? (1 = Yes, 0 = No): ");
@@ -96,11 +129,10 @@ void registerPatient() {
 
         int wIndex = patientWard[patientCount] - 1;
 
-        // Find available bed in 2D Bed Occupancy Matrix
         int allocated = 0;
         for (int b = 0; b < bedCapacity[wIndex]; b++) {
             if (bedOccupancy[wIndex][b] == 0) {
-                bedOccupancy[wIndex][b] = 1; // Mark bed as occupied
+                bedOccupancy[wIndex][b] = 1;
                 assignedBed[patientCount] = b + 1;
                 allocated = 1;
                 break;
@@ -124,12 +156,15 @@ void registerPatient() {
         daysAdmitted[patientCount] = 0;
     }
 
+    // Increment Queue Count AFTER logic is completed
+    specialtyQueue[specIndex]++;
+
     printf("\nPatient %s registered successfully!\n", patientName[patientCount]);
     patientCount++;
 }
 
 // ==========================================
-// 4. MAIN FUNCTION
+// 5. MAIN FUNCTION
 // ==========================================
 int main()
 {
