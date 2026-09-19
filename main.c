@@ -74,7 +74,75 @@ float calculateDiscount(int age, float grossTotal) {
 }
 
 // ==========================================
-// 4. BILL DISPLAY FUNCTION (REQUIREMENT 5)
+// 4. FILE HANDLING FUNCTIONS (BONUS REQUIREMENT)
+// ==========================================
+
+void savePatientToLog(int index) {
+    FILE *file = fopen("patient_log.txt", "a");
+    if (file == NULL) {
+        printf("Error: Could not open patient_log.txt for writing.\n");
+        return;
+    }
+
+    int sIdx = patientSpecialty[index] - 1;
+    int wIdx = patientWard[index] - 1;
+
+    float baseFee = consultationFee[sIdx];
+    float surcharge = calculateSurcharge(baseFee, urgencyLevel[index]);
+    float wardCost = calculateWardCost(admitted[index], wIdx, daysAdmitted[index]);
+    float grossTotal = baseFee + surcharge + wardCost;
+    float discount = calculateDiscount(patientAge[index], grossTotal);
+    float finalPayable = grossTotal - discount;
+
+    fprintf(file, "ID: PAT-%d | Name: %s | Age: %d | Urgency: Level %d | Specialty: %s | Admitted: %s | Final Bill: LKR %.2f\n",
+            originalID[index],
+            patientName[index],
+            patientAge[index],
+            urgencyLevel[index],
+            specialtyName[sIdx],
+            (admitted[index] == 1) ? "Yes" : "No",
+            finalPayable);
+
+    fclose(file);
+}
+
+void saveBedStatusToFile() {
+    FILE *file = fopen("bed_status.txt", "w");
+    if (file == NULL) {
+        printf("Error: Could not open bed_status.txt for writing.\n");
+        return;
+    }
+
+    fprintf(file, "=========================================================\n");
+    fprintf(file, "             HOSPITAL WARDS & BED STATUS                 \n");
+    fprintf(file, "=========================================================\n");
+
+    for (int w = 0; w < 4; w++) {
+        int occupiedCount = 0;
+        for (int b = 0; b < bedCapacity[w]; b++) {
+            if (bedOccupancy[w][b] == 1) occupiedCount++;
+        }
+
+        fprintf(file, "\nWard %d: %s | Occupancy: %d/%d beds\n", wardID[w], wardName[w], occupiedCount, bedCapacity[w]);
+        for (int b = 0; b < bedCapacity[w]; b++) {
+            if (bedOccupancy[w][b] == 1) {
+                fprintf(file, "[X] B%02d ", b + 1);
+            } else {
+                fprintf(file, "[ ] B%02d ", b + 1);
+            }
+
+            if ((b + 1) % 5 == 0) {
+                fprintf(file, "\n");
+            }
+        }
+        fprintf(file, "\n---------------------------------------------------------\n");
+    }
+
+    fclose(file);
+}
+
+// ==========================================
+// 5. BILL DISPLAY FUNCTION (REQUIREMENT 5)
 // ==========================================
 
 void printPatientBill(int index) {
@@ -135,7 +203,7 @@ void printPatientBill(int index) {
 }
 
 // ==========================================
-// 5. REGISTRATION FUNCTION
+// 6. REGISTRATION FUNCTION
 // ==========================================
 
 void registerPatient() {
@@ -210,7 +278,13 @@ void registerPatient() {
         daysAdmitted[patientCount] = 0;
     }
 
+    // Print Receipt
     printPatientBill(patientCount);
+
+    // Save Data to Files
+    savePatientToLog(patientCount);
+    saveBedStatusToFile();
+    printf("[Data successfully saved to patient_log.txt and bed_status.txt]\n");
 
     specialtyQueue[specIndex]++;
 
@@ -218,7 +292,7 @@ void registerPatient() {
 }
 
 // ==========================================
-// 6. TRIAGE PRIORITY SORTING (REQUIREMENT 4)
+// 7. TRIAGE PRIORITY SORTING (REQUIREMENT 4)
 // ==========================================
 
 void displayPatientsTriage() {
@@ -281,7 +355,7 @@ void displayPatientsTriage() {
 }
 
 // ==========================================
-// 7. BED STATUS VISUALIZER (REQUIREMENT 1)
+// 8. BED STATUS VISUALIZER (REQUIREMENT 1)
 // ==========================================
 
 void displayBedStatus() {
@@ -317,7 +391,7 @@ void displayBedStatus() {
 }
 
 // ==========================================
-// 8. SUMMARY REPORTS & ANALYTICS (REQUIREMENT 6)
+// 9. SUMMARY REPORTS & ANALYTICS (REQUIREMENT 6)
 // ==========================================
 
 void generateAnalyticsReport() {
@@ -389,7 +463,7 @@ void generateAnalyticsReport() {
 }
 
 // ==========================================
-// 9. MAIN FUNCTION
+// 10. MAIN FUNCTION
 // ==========================================
 int main()
 {
